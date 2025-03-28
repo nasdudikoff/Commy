@@ -1,0 +1,21 @@
+{
+  "name": "commy",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@mistralai/mistralai": "^1.5.2",
+    "@types/node": "^22.13.14",
+    "dotenv": "^16.4.7",
+    "simple-git": "^3.27.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}
