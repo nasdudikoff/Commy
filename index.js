@@ -16,6 +16,15 @@ class GitCommitsProcessor {
     this.mistral = new Mistral({
       apiKey: process.env.MISTRAL_API_KEY,
     });
+
+    // Default author filter, can be set via setAuthorFilter
+    this.authorFilter = null;
+  }
+
+  // Add a method to set author filter
+  setAuthorFilter(authorName) {
+    this.authorFilter = authorName;
+    console.log(`Filtering commits for authors including: ${authorName}`);
   }
 
   async getCommitsSinceDate(date) {
@@ -30,11 +39,23 @@ class GitCommitsProcessor {
         },
       });
 
-      return commits.all.map((commit) => ({
+      let filteredCommits = commits.all.map((commit) => ({
         subject: commit.subject,
         date: new Date(commit.date).toLocaleDateString("fr-FR"),
         author: commit.author,
       }));
+
+      // Apply author filter if set
+      if (this.authorFilter) {
+        filteredCommits = filteredCommits.filter((commit) =>
+          commit.author.toLowerCase().includes(this.authorFilter.toLowerCase())
+        );
+        console.log(
+          `Filtered to ${filteredCommits.length} commits by author containing "${this.authorFilter}"`
+        );
+      }
+
+      return filteredCommits;
     } catch (error) {
       console.error("Erreur lors de la récupération des commits:", error);
       return [];
@@ -182,6 +203,11 @@ async function main() {
 
   const repoPath = process.env.FOLDER; // Chemin du répertoire du projet
   const processor = new GitCommitsProcessor(repoPath);
+
+  if (process.env.AUTHOR) {
+    // Set author filter from environment variable
+    processor.setAuthorFilter(process.env.AUTHOR);
+  }
 
   const LAST_DAY = parseInt(process.env.LAST_DAY) || 7;
   // Récupérer les commits des derniers jours
