@@ -89,7 +89,7 @@ class GitCommitsProcessor {
           messages: [
             {
               role: "user",
-              content: `Regroupe et reformule ces commits par date en tâches concises pour un rapport d'activité pour ${author}. Garde la structure originale avec les dates. Évite les répétitions et généralise si possible :\n${commitsText}`,
+              content: `la réponse sera en français,Regroupe et reformule ces commits par date en tâches concises pour un rapport d'activité pour ${author}. Garde la structure originale avec les dates. Évite les répétitions et généralise si possible :\n${commitsText}`,
             },
           ],
         });
