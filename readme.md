@@ -1,5 +1,9 @@
 # Commy - Assistant de Création de rapport à partir de commits avec Mistral AI
 
+🚀 **Nouvelle Interface Graphique Disponible !** 🚀
+
+Commy propose maintenant une interface web moderne et intuitive pour générer vos rapports d'activité Git, en plus du mode ligne de commande traditionnel.
+
 ## Prérequis
 
 - Un compte [Mistral AI](https://console.mistral.ai/)
@@ -66,11 +70,47 @@
    - LAST_DAY=30 : Analyse les commits du dernier mois
 
 4. **Démarrez l'application**
+   
+   **Mode ligne de commande (original) :**
    ```bash
    npm run start
    ```
+   
+   **Mode interface graphique (nouveau) :**
+   ```bash
+   npm run gui
+   ```
+   
+   L'interface web sera disponible sur [http://localhost:3000](http://localhost:3000)
 
 ## Utilisation
+
+### Interface Graphique (Recommandée)
+
+1. **Lancez l'interface web :**
+   ```bash
+   npm run gui
+   ```
+
+2. **Ouvrez votre navigateur** et allez sur [http://localhost:3000](http://localhost:3000)
+
+3. **Remplissez le formulaire :**
+   - **Clé API Mistral** : Votre clé API Mistral AI
+   - **Dossier du Projet Git** : Chemin absolu vers votre répertoire Git
+   - **Nombre de Jours** : Nombre de jours à analyser (par défaut: 7)
+   - **Filtrer par Auteur** : Optionnel, filtre par nom d'auteur
+
+4. **Cliquez sur "Générer le Rapport"** et suivez le progrès en temps réel
+
+5. **Consultez le rapport** directement dans l'interface une fois généré
+
+### Ligne de Commande (Mode Original)
+
+Pour utiliser l'application en mode ligne de commande, créez un fichier `.env` avec les variables d'environnement et lancez :
+
+```bash
+npm run start
+```
 
 Une fois l'application démarrée, les tâches générées seront disponibles dans le fichier `tasks.md`.
 
