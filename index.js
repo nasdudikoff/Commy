@@ -217,5 +217,10 @@ async function main() {
   await processor.processCommits(daysAgo);
 }
 
-// Exécuter le script
-main().catch(console.error);
+// Export the class for use in web interface
+export { GitCommitsProcessor };
+
+// Only run main if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(console.error);
+}
