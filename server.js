@@ -43,8 +43,8 @@ app.post("/api/process", async (req, res) => {
   const { mistralApiKey, folder, lastDay, author } = req.body;
 
   if (!mistralApiKey || !folder) {
-    return res.status(400).json({ 
-      error: "La clé API Mistral et le dossier du projet sont requis" 
+    return res.status(400).json({
+      error: "La clé API Mistral et le dossier du projet sont requis"
     });
   }
 
@@ -62,9 +62,9 @@ app.post("/api/process", async (req, res) => {
   try {
     // Set environment variables temporarily
     process.env.MISTRAL_API_KEY = mistralApiKey;
-    
+
     const processor = new GitCommitsProcessor(folder);
-    
+
     if (author) {
       processor.setAuthorFilter(author);
     }
@@ -77,7 +77,7 @@ app.post("/api/process", async (req, res) => {
     processingStatus.progress = 20;
 
     const commits = await processor.getCommitsSinceDate(daysAgo);
-    
+
     if (commits.length === 0) {
       processingStatus.isProcessing = false;
       processingStatus.error = "Aucun commit trouvé pour la période spécifiée";
@@ -131,6 +131,77 @@ app.get("/api/report", (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la lecture du rapport" });
+  }
+});
+
+app.get("/api/load-config", (req, res) => {
+  try {
+    const envPath = path.join(process.cwd(), ".env");
+
+    if (!fs.existsSync(envPath)) {
+      return res.json({
+        MISTRAL_API_KEY: "",
+        FOLDER: "",
+        LAST_DAY: "7",
+        AUTHOR: ""
+      });
+    }
+
+    const envContent = fs.readFileSync(envPath, "utf8");
+    const config = {};
+
+    envContent.split('\n').forEach(line => {
+      const [key, value] = line.split('=');
+      if (key && value) {
+        // Supprimer les guillemets simples si présents
+        config[key.trim()] = value.trim().replace(/^'|'$/g, '');
+      }
+    });
+
+    res.json({
+      MISTRAL_API_KEY: config.MISTRAL_API_KEY || "",
+      FOLDER: config.FOLDER || "",
+      LAST_DAY: config.LAST_DAY || "7",
+      AUTHOR: config.AUTHOR || ""
+    });
+
+  } catch (error) {
+    console.error("Erreur lors du chargement:", error);
+    res.status(500).json({ error: "Erreur lors du chargement de la configuration" });
+  }
+});
+
+app.post("/api/save-config", (req, res) => {
+  try {
+    const { MISTRAL_API_KEY, FOLDER, LAST_DAY, AUTHOR } = req.body;
+
+    if (!MISTRAL_API_KEY || !FOLDER) {
+      return res.status(400).json({
+        error: "La clé API Mistral et le dossier sont requis"
+      });
+    }
+
+    // Préparer le contenu du fichier .env
+    let envContent = `MISTRAL_API_KEY=${MISTRAL_API_KEY}\n`;
+    envContent += `FOLDER='${FOLDER}'\n`;
+    envContent += `LAST_DAY=${LAST_DAY || '7'}\n`;
+
+    if (AUTHOR && AUTHOR.trim() !== '') {
+      envContent += `AUTHOR='${AUTHOR}'\n`;
+    }
+
+    // Sauvegarder dans le fichier .env
+    const envPath = path.join(process.cwd(), ".env");
+    fs.writeFileSync(envPath, envContent);
+
+    res.json({
+      message: "Configuration sauvegardée avec succès dans le fichier .env",
+      saved: { MISTRAL_API_KEY: "***", FOLDER, LAST_DAY, AUTHOR }
+    });
+
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde:", error);
+    res.status(500).json({ error: "Erreur lors de la sauvegarde de la configuration" });
   }
 });
 

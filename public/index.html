@@ -380,9 +380,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn" id="submitBtn">
-                    🚀 Générer le Rapport
-                </button>
+                <div class="form-row">
+                    <button type="button" class="btn" id="saveBtn" onclick="saveConfig()">
+                        💾 Sauvegarder Config
+                    </button>
+                    <button type="submit" class="btn" id="submitBtn">
+                        🚀 Générer le Rapport
+                    </button>
+                </div>
             </form>
 
             <div class="progress-container" id="progressContainer">
@@ -435,6 +440,11 @@
         const statsContainer = document.getElementById('statsContainer');
 
         let statusCheckInterval;
+
+        // Charger la configuration au démarrage
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadConfig();
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -594,6 +604,69 @@
                 previewTab.style.display = 'none';
                 markdownTab.style.display = 'block';
                 buttons[1].classList.add('active');
+            }
+        }
+
+        async function saveConfig() {
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.textContent;
+            
+            try {
+                saveBtn.disabled = true;
+                saveBtn.textContent = '💾 Sauvegarde...';
+                
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                
+                const config = {
+                    MISTRAL_API_KEY: data.mistralApiKey,
+                    FOLDER: data.folder,
+                    LAST_DAY: data.lastDay || '7',
+                    AUTHOR: data.author || ''
+                };
+
+                const response = await fetch('/api/save-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error);
+                }
+
+                saveBtn.textContent = '✅ Sauvegardé!';
+                setTimeout(() => {
+                    saveBtn.textContent = originalText;
+                    saveBtn.disabled = false;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde:', error);
+                saveBtn.textContent = '❌ Erreur';
+                setTimeout(() => {
+                    saveBtn.textContent = originalText;
+                    saveBtn.disabled = false;
+                }, 2000);
+            }
+        }
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/load-config');
+                const config = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('mistralApiKey').value = config.MISTRAL_API_KEY;
+                    document.getElementById('folder').value = config.FOLDER;
+                    document.getElementById('lastDay').value = config.LAST_DAY;
+                    document.getElementById('author').value = config.AUTHOR;
+                }
+            } catch (error) {
+                console.error('Erreur lors du chargement de la configuration:', error);
             }
         }
     </script>
