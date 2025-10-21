@@ -64,19 +64,30 @@
 
         .form-group input[type="text"],
         .form-group input[type="number"],
-        .form-group input[type="password"] {
+        .form-group input[type="password"],
+        .form-group select {
             width: 100%;
             padding: 12px 15px;
             border: 2px solid #e1e5e9;
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s ease;
+            background-color: #fff;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #4a90e2;
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .form-group select {
+            cursor: pointer;
+        }
+
+        .form-group select option {
+            padding: 10px;
         }
 
         .form-row {
@@ -355,13 +366,24 @@
         <div class="content">
             <form id="configForm">
                 <div class="form-group">
-                    <label for="mistralApiKey">Clé API Mistral *</label>
-                    <input type="password" id="mistralApiKey" name="mistralApiKey" required>
-                    <div class="helper-text">Votre clé API Mistral AI pour la génération intelligente des rapports</div>
+                    <label for="aiProvider">🤖 Modèle IA *</label>
+                    <select id="aiProvider" name="aiProvider" required>
+                        <option value="mistral">Mistral AI</option>
+                        <option value="openai">OpenAI (ChatGPT)</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="claude">Anthropic Claude</option>
+                    </select>
+                    <div class="helper-text">Choisissez le modèle d'IA pour générer les rapports</div>
                 </div>
 
                 <div class="form-group">
-                    <label for="folder">Dossier du Projet Git *</label>
+                    <label for="mistralApiKey">🔑 Clé API IA *</label>
+                    <input type="password" id="mistralApiKey" name="mistralApiKey" required>
+                    <div class="helper-text" id="apiKeyHelper">Obtenez votre clé API Mistral sur <a href="https://console.mistral.ai/" target="_blank">console.mistral.ai</a></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="folder">📁 Dossier du Projet Git *</label>
                     <input type="text" id="folder" name="folder" required placeholder="ex: /chemin/vers/votre/projet">
                     <div class="helper-text">Chemin absolu vers le répertoire Git à analyser</div>
                 </div>
@@ -438,8 +460,50 @@
         const reportContainer = document.getElementById('reportContainer');
         const reportContent = document.getElementById('reportContent');
         const statsContainer = document.getElementById('statsContainer');
+        const aiProviderSelect = document.getElementById('aiProvider');
+        const apiKeyInput = document.getElementById('mistralApiKey');
+        const apiKeyHelper = document.getElementById('apiKeyHelper');
 
         let statusCheckInterval;
+
+        // Configuration des providers IA
+        const aiProviders = {
+            mistral: {
+                name: 'Mistral AI',
+                placeholder: 'Entrez votre clé API Mistral',
+                helpUrl: 'https://console.mistral.ai/',
+                helpText: 'Obtenez votre clé API Mistral sur'
+            },
+            openai: {
+                name: 'OpenAI (ChatGPT)',
+                placeholder: 'Entrez votre clé API OpenAI',
+                helpUrl: 'https://platform.openai.com/api-keys',
+                helpText: 'Obtenez votre clé API OpenAI sur'
+            },
+            gemini: {
+                name: 'Google Gemini',
+                placeholder: 'Entrez votre clé API Gemini',
+                helpUrl: 'https://aistudio.google.com/app/apikey',
+                helpText: 'Obtenez votre clé API Gemini sur'
+            },
+            claude: {
+                name: 'Anthropic Claude',
+                placeholder: 'Entrez votre clé API Claude',
+                helpUrl: 'https://console.anthropic.com/',
+                helpText: 'Obtenez votre clé API Claude sur'
+            }
+        };
+
+        // Gestionnaire de changement de provider
+        aiProviderSelect.addEventListener('change', function() {
+            const selectedProvider = this.value;
+            const providerConfig = aiProviders[selectedProvider];
+            
+            if (providerConfig) {
+                apiKeyInput.placeholder = providerConfig.placeholder;
+                apiKeyHelper.innerHTML = `${providerConfig.helpText} <a href="${providerConfig.helpUrl}" target="_blank">${providerConfig.helpUrl}</a>`;
+            }
+        });
 
         // Charger la configuration au démarrage
         window.addEventListener('DOMContentLoaded', async () => {
@@ -620,6 +684,7 @@
                 
                 const config = {
                     MISTRAL_API_KEY: data.mistralApiKey,
+                    AI_PROVIDER: data.aiProvider || 'mistral',
                     FOLDER: data.folder,
                     LAST_DAY: data.lastDay || '7',
                     AUTHOR: data.author || ''
@@ -660,10 +725,14 @@
                 const config = await response.json();
                 
                 if (response.ok) {
-                    document.getElementById('mistralApiKey').value = config.MISTRAL_API_KEY;
-                    document.getElementById('folder').value = config.FOLDER;
-                    document.getElementById('lastDay').value = config.LAST_DAY;
-                    document.getElementById('author').value = config.AUTHOR;
+                    document.getElementById('mistralApiKey').value = config.MISTRAL_API_KEY || '';
+                    document.getElementById('aiProvider').value = config.AI_PROVIDER || 'mistral';
+                    document.getElementById('folder').value = config.FOLDER || '';
+                    document.getElementById('lastDay').value = config.LAST_DAY || '7';
+                    document.getElementById('author').value = config.AUTHOR || '';
+
+                    // Déclencher l'événement change pour mettre à jour l'aide
+                    aiProviderSelect.dispatchEvent(new Event('change'));
                 }
             } catch (error) {
                 console.error('Erreur lors du chargement de la configuration:', error);

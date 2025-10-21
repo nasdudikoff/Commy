@@ -23,11 +23,11 @@ router.post("/process", async (req, res) => {
         return res.status(400).json({ error: "Un traitement est déjà en cours" });
     }
 
-    const { mistralApiKey, folder, lastDay, author } = req.body;
+    const { mistralApiKey, aiProvider, folder, lastDay, author } = req.body;
 
     if (!mistralApiKey || !folder) {
         return res.status(400).json({
-            error: "La clé API Mistral et le dossier du projet sont requis"
+            error: "La clé API et le dossier du projet sont requis"
         });
     }
 
@@ -43,10 +43,19 @@ router.post("/process", async (req, res) => {
     res.json({ message: "Traitement démarré" });
 
     try {
-        // Set environment variables temporarily
-        process.env.MISTRAL_API_KEY = mistralApiKey;
+        // Configurer les variables d'environnement selon le provider
+        const apiKeyVariables = {
+            mistral: 'MISTRAL_API_KEY',
+            openai: 'OPENAI_API_KEY',
+            gemini: 'GEMINI_API_KEY',
+            claude: 'CLAUDE_API_KEY'
+        };
 
-        const processor = new GitCommitsProcessor(folder);
+        const apiKeyVar = apiKeyVariables[aiProvider] || 'MISTRAL_API_KEY';
+        process.env[apiKeyVar] = mistralApiKey;
+        process.env.AI_PROVIDER = aiProvider || 'mistral';
+
+        const processor = new GitCommitsProcessor(folder, aiProvider || 'mistral');
 
         processingStatus.currentStep = "Validation du repository...";
         processingStatus.progress = 10;

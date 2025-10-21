@@ -11,6 +11,7 @@ router.get("/load-config", (req, res) => {
         if (!fs.existsSync(envPath)) {
             return res.json({
                 MISTRAL_API_KEY: "",
+                AI_PROVIDER: "mistral",
                 FOLDER: "",
                 LAST_DAY: "7",
                 AUTHOR: ""
@@ -28,7 +29,8 @@ router.get("/load-config", (req, res) => {
         });
 
         res.json({
-            MISTRAL_API_KEY: config.MISTRAL_API_KEY || "",
+            MISTRAL_API_KEY: config.MISTRAL_API_KEY || config.OPENAI_API_KEY || config.GEMINI_API_KEY || config.CLAUDE_API_KEY || "",
+            AI_PROVIDER: config.AI_PROVIDER || "mistral",
             FOLDER: config.FOLDER || "",
             LAST_DAY: config.LAST_DAY || "7",
             AUTHOR: config.AUTHOR || ""
@@ -42,15 +44,26 @@ router.get("/load-config", (req, res) => {
 
 router.post("/save-config", (req, res) => {
     try {
-        const { MISTRAL_API_KEY, FOLDER, LAST_DAY, AUTHOR } = req.body;
+        const { MISTRAL_API_KEY, AI_PROVIDER, FOLDER, LAST_DAY, AUTHOR } = req.body;
 
         if (!MISTRAL_API_KEY || !FOLDER) {
             return res.status(400).json({
-                error: "La clé API Mistral et le dossier sont requis"
+                error: "La clé API et le dossier sont requis"
             });
         }
 
-        let envContent = `MISTRAL_API_KEY=${MISTRAL_API_KEY}\n`;
+        // Déterminer le nom de la variable d'environnement selon le provider
+        const apiKeyVariables = {
+            mistral: 'MISTRAL_API_KEY',
+            openai: 'OPENAI_API_KEY',
+            gemini: 'GEMINI_API_KEY',
+            claude: 'CLAUDE_API_KEY'
+        };
+
+        const apiKeyVar = apiKeyVariables[AI_PROVIDER] || 'MISTRAL_API_KEY';
+
+        let envContent = `${apiKeyVar}=${MISTRAL_API_KEY}\n`;
+        envContent += `AI_PROVIDER=${AI_PROVIDER || 'mistral'}\n`;
         envContent += `FOLDER='${FOLDER}'\n`;
         envContent += `LAST_DAY=${LAST_DAY || '7'}\n`;
 
@@ -63,7 +76,7 @@ router.post("/save-config", (req, res) => {
 
         res.json({
             message: "Configuration sauvegardée avec succès dans le fichier .env",
-            saved: { MISTRAL_API_KEY: "***", FOLDER, LAST_DAY, AUTHOR }
+            saved: { [apiKeyVar]: "***", AI_PROVIDER, FOLDER, LAST_DAY, AUTHOR }
         });
 
     } catch (error) {
