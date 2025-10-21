@@ -2,11 +2,12 @@
   "name": "commy",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.ts",
+  "main": "cli/index.js",
   "scripts": {
-    "start": "node index.js",
-    "gui": "node server.js",
-    "web": "node server.js"
+    "cli": "node cli/index.js",
+    "web": "node web/server.js",
+    "dev": "nodemon web/server.js",
+    "start": "node cli/index.js"
   },
   "keywords": [],
   "author": "",

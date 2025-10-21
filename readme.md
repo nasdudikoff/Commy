@@ -71,25 +71,30 @@ Commy propose maintenant une interface web moderne et intuitive pour générer v
 
 4. **Démarrez l'application**
    
-   **Mode ligne de commande (original) :**
+   **Mode ligne de commande :**
    ```bash
-   npm run start
+   npm run cli
    ```
    
-   **Mode interface graphique (nouveau) :**
+   **Mode interface web :**
    ```bash
-   npm run gui
+   npm run web
+   ```
+   
+   **Mode développement (avec auto-reload) :**
+   ```bash
+   npm run dev
    ```
    
    L'interface web sera disponible sur [http://localhost:3000](http://localhost:3000)
 
 ## Utilisation
 
-### Interface Graphique (Recommandée)
+### Interface Web (Recommandée)
 
 1. **Lancez l'interface web :**
    ```bash
-   npm run gui
+   npm run web
    ```
 
 2. **Ouvrez votre navigateur** et allez sur [http://localhost:3000](http://localhost:3000)
@@ -109,10 +114,43 @@ Commy propose maintenant une interface web moderne et intuitive pour générer v
 Pour utiliser l'application en mode ligne de commande, créez un fichier `.env` avec les variables d'environnement et lancez :
 
 ```bash
-npm run start
+npm run cli
 ```
 
 Une fois l'application démarrée, les tâches générées seront disponibles dans le fichier `tasks.md`.
+
+## Architecture du Projet
+
+Le projet Commy est organisé de manière modulaire :
+
+```
+Commy/
+├── cli/                    # Interface en ligne de commande
+│   ├── index.js           # Point d'entrée CLI
+│   └── commands/          # Commandes CLI futures
+├── web/                   # Interface web
+│   ├── server.js          # Serveur Express principal
+│   ├── public/            # Fichiers statiques (HTML, CSS, JS)
+│   └── routes/            # Routes API modulaires
+│       ├── config.js      # Configuration (.env)
+│       ├── process.js     # Traitement des commits
+│       └── report.js      # Gestion des rapports
+├── src/                   # Code partagé/core
+│   ├── GitCommitsProcessor.js  # Processeur principal
+│   └── services/          # Services métier
+│       ├── GitService.js  # Gestion Git
+│       └── MistralService.js  # Intégration Mistral AI
+├── package.json
+└── README.md
+```
+
+### Avantages de cette architecture :
+
+- **Séparation claire** : CLI et Web dans des modules distincts
+- **Code réutilisable** : Services partagés entre interfaces
+- **Maintenabilité** : Chaque fichier a une responsabilité unique
+- **Extensibilité** : Facile d'ajouter de nouvelles fonctionnalités
+- **Testabilité** : Structure propice aux tests unitaires
 
 ## Support
 
