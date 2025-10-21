@@ -28,10 +28,19 @@ Commy propose maintenant une interface web moderne et intuitive pour générer v
    - Créez un fichier `.env` à la racine du projet
    - Ajoutez les variables suivantes :
      ```env
-     MISTRAL_API_KEY=VOTRE_CLE_API
+     # Configuration du projet
      FOLDER='CHEMIN_VERS_VOTRE_DOSSIER_GIT'
      LAST_DAY=7 # Optionnel: Nombre de jours à analyser (par défaut: 7)
      AUTHOR='nom_auteur' # Optionnel: Filtre les commits par nom d'auteur
+
+     # Choisir le provider IA (mistral, openai, gemini, claude)
+     AI_PROVIDER=mistral
+
+     # Clés API (une seule nécessaire selon le provider choisi)
+     MISTRAL_API_KEY=VOTRE_CLE_MISTRAL
+     OPENAI_API_KEY=VOTRE_CLE_OPENAI
+     GEMINI_API_KEY=VOTRE_CLE_GEMINI
+     CLAUDE_API_KEY=VOTRE_CLE_CLAUDE
      ```
      Exemple :
 
@@ -118,6 +127,42 @@ npm run cli
 ```
 
 Une fois l'application démarrée, les tâches générées seront disponibles dans le fichier `tasks.md`.
+
+## 🤖 Providers IA Supportés
+
+Commy supporte plusieurs modèles d'IA pour la génération de rapports :
+
+| Provider | Modèle | Variable d'environnement | Description |
+|----------|---------|-------------------------|-------------|
+| **Mistral AI** | mistral-small-latest | `MISTRAL_API_KEY` | Modèle français optimisé |
+| **OpenAI** | gpt-3.5-turbo | `OPENAI_API_KEY` | ChatGPT classique |
+| **Google Gemini** | gemini-pro | `GEMINI_API_KEY` | Modèle multimodal de Google |
+| **Anthropic Claude** | claude-3-haiku | `CLAUDE_API_KEY` | Modèle conversationnel |
+
+### Configuration du Provider
+
+1. **Définir le provider** dans votre `.env` :
+   ```env
+   AI_PROVIDER=mistral  # ou openai, gemini, claude
+   ```
+
+2. **Ajouter la clé API** correspondante :
+   ```env
+   MISTRAL_API_KEY=votre_cle_ici  # pour Mistral
+   # ou
+   OPENAI_API_KEY=votre_cle_ici   # pour OpenAI
+   # ou
+   GEMINI_API_KEY=votre_cle_ici   # pour Gemini
+   # ou
+   CLAUDE_API_KEY=votre_cle_ici   # pour Claude
+   ```
+
+### Obtenir les Clés API
+
+- **Mistral AI** : [console.mistral.ai](https://console.mistral.ai/api-keys)
+- **OpenAI** : [platform.openai.com](https://platform.openai.com/api-keys)
+- **Google Gemini** : [makersuite.google.com](https://makersuite.google.com/app/apikey)
+- **Anthropic Claude** : [console.anthropic.com](https://console.anthropic.com/)
 
 ## Architecture du Projet
 

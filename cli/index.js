@@ -18,23 +18,34 @@ async function main() {
         const folder = process.env.FOLDER;
         const lastDay = parseInt(process.env.LAST_DAY) || 7;
         const author = process.env.AUTHOR;
+        const aiProvider = process.env.AI_PROVIDER || 'mistral';
 
         if (!folder) {
             throw new Error('❌ Variable FOLDER non définie dans le fichier .env');
         }
 
-        if (!process.env.MISTRAL_API_KEY) {
-            throw new Error('❌ Variable MISTRAL_API_KEY non définie dans le fichier .env');
+        // Vérifier que la clé API correspondante est définie
+        const { AIServiceFactory } = await import('../src/services/ai/AIServiceFactory.js');
+        const providers = AIServiceFactory.getSupportedProviders();
+        const currentProvider = providers.find(p => p.id === aiProvider);
+
+        if (!currentProvider) {
+            throw new Error(`❌ Provider IA '${aiProvider}' non supporté. Providers disponibles: ${providers.map(p => p.id).join(', ')}`);
+        }
+
+        if (!process.env[currentProvider.apiKeyEnv]) {
+            throw new Error(`❌ Variable ${currentProvider.apiKeyEnv} non définie dans le fichier .env`);
         }
 
         console.log(`📁 Dossier: ${folder}`);
         console.log(`📅 Derniers ${lastDay} jours`);
+        console.log(`🤖 Provider IA: ${currentProvider.name}`);
         if (author) {
             console.log(`👤 Filtre auteur: ${author}`);
         }
 
         // Initialisation du processeur
-        const processor = new GitCommitsProcessor(folder);
+        const processor = new GitCommitsProcessor(folder, aiProvider);
 
         // Validation du repository
         console.log('\n🔍 Validation du repository Git...');

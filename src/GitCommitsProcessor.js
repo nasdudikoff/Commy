@@ -1,15 +1,23 @@
 import { GitService } from './services/GitService.js';
 import { MistralService } from './services/MistralService.js';
+import { AIServiceFactory } from './services/ai/AIServiceFactory.js';
 
 export class GitCommitsProcessor {
-    constructor(repositoryPath) {
+    constructor(repositoryPath, aiProvider = 'mistral') {
         this.gitService = new GitService(repositoryPath);
         this.authorFilter = null;
         this.repositoryPath = repositoryPath;
+        this.aiProvider = aiProvider;
+        this.mistralService = new MistralService(aiProvider);
     }
 
     setAuthorFilter(author) {
         this.authorFilter = author;
+    }
+
+    setAIProvider(provider, apiKey) {
+        this.aiProvider = provider;
+        this.mistralService.setProvider(provider, apiKey);
     }
 
     async validateRepository() {
@@ -43,18 +51,28 @@ export class GitCommitsProcessor {
     }
 
     async reformulateCommitsByAuthor(authorCommits) {
-        const apiKey = process.env.MISTRAL_API_KEY;
-        if (!apiKey) {
-            throw new Error('MISTRAL_API_KEY non définie dans les variables d\'environnement');
+        // Déterminer quelle clé API utiliser selon le provider
+        const providers = AIServiceFactory.getSupportedProviders();
+        const currentProvider = providers.find(p => p.id === this.aiProvider);
+
+        if (!currentProvider) {
+            throw new Error(`Provider '${this.aiProvider}' non supporté`);
         }
 
-        const mistralService = new MistralService(apiKey);
+        const apiKey = process.env[currentProvider.apiKeyEnv];
+        if (!apiKey) {
+            throw new Error(`${currentProvider.apiKeyEnv} non définie dans les variables d'environnement`);
+        }
+
+        // Configurer le service AI
+        this.mistralService.setProvider(this.aiProvider, apiKey);
+
         const authorTasks = {};
 
         for (const [author, commits] of Object.entries(authorCommits)) {
-            console.log(`Reformulation des commits pour ${author}...`);
+            console.log(`Reformulation des commits pour ${author} avec ${currentProvider.name}...`);
             try {
-                authorTasks[author] = await mistralService.reformulateCommits(commits, author);
+                authorTasks[author] = await this.mistralService.reformulateCommits(commits, author);
             } catch (error) {
                 console.error(`Erreur pour ${author}:`, error.message);
                 // Fallback: format simple
@@ -66,26 +84,6 @@ export class GitCommitsProcessor {
     }
 
     async generateReport(authorTasks) {
-        const apiKey = process.env.MISTRAL_API_KEY;
-        if (!apiKey) {
-            throw new Error('MISTRAL_API_KEY non définie dans les variables d\'environnement');
-        }
-
-        const mistralService = new MistralService(apiKey);
-
-        try {
-            return await mistralService.generateReport(authorTasks);
-        } catch (error) {
-            console.error('Erreur lors de la génération du rapport:', error.message);
-            // Fallback: rapport simple
-            const today = new Date().toLocaleDateString('fr-FR');
-            let report = `# Rapport d'activité - ${today}\n\n`;
-
-            for (const [author, tasks] of Object.entries(authorTasks)) {
-                report += `## ${author}\n\n${tasks}\n\n`;
-            }
-
-            return report;
-        }
+        return await this.mistralService.generateReport(authorTasks);
     }
 }
