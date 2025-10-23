@@ -82,6 +82,8 @@ Commy propose maintenant une interface web moderne et intuitive pour générer v
    
    **Mode ligne de commande :**
    ```bash
+   npm start
+   # ou
    npm run cli
    ```
    
